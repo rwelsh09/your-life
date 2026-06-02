@@ -86,12 +86,24 @@ input:required:invalid.touched {
   margin: 4rem auto 2rem auto;
   padding: 0;
   list-style-type: none;
+  display: grid;
+}
+.chart > li {
+  border: 1px solid black;
+  aspect-ratio: 1 / 1; 
+}
+.x-axis, 
+.y-axis {
+  position: absolute;
 }
 .x-axis {
-  position: absolute;
   top: -2.75em;
   height: 2.75em;
   width: 100%;
+}
+.y-axis {
+  top: 0;
+  bottom: 0;
 }
 .x-axis .markers,
 .y-axis .markers {
@@ -127,42 +139,30 @@ input:required:invalid.touched {
 
 /* YEARS */
 .years {
-  max-width: 380px; /* 38px per year * 10years = 380px */
+  max-width: 70%;
+  gap: 2px;
 }
 .years > li {
-  border: 1px solid black;
-  width: 5.789473684%; /* 22px/380px */
-  /*  For border-box sizing, width includes borders. Thus a         //
-  //  22px width is a like a padding of 20px with two 1px borders.  */
-  padding-bottom: 5.263157895%; /* 20px/380px */
-  margin: 2.105263158%; /* 8px/380px */
-  float: left;
-  transform: rotate(45deg);
+  transform: rotate(45deg) scale(0.7071);
+  min-width: 5px;
 }
 
 /* MONTHS */
 .months {
-  max-width: 504px; /* 14px per month * 36 months = 504px */
+  max-width: 80%;
+  gap: 2px;
 }
 .months > li {
-  border: 1px solid black;
-  width: 2.380952381%; /* 12px/504px */
-  padding-bottom: 1.984126984%; /* 10px/504px */
-  margin: .198412698%; /* 1px/504px */
+  border: 0.5px solid black;
   border-radius: 50%;
-  float: left;
+  aspect-ratio: 1/1;
+  min-width: 5px;
 }
 
 /* WEEKS */
 .weeks {
-  max-width: 624px; /* 12px per week * 52weeks = 624px */
-}
-.weeks > li {
-  border: 1px solid black;
-  width: 1.282051282%; /* 8px/624px */
-  padding-bottom: .961538462%; /* 6px/624px */
-  margin: .320512821%; /* 2px/624px */
-  float: left;
+  max-width: 80%;
+  gap: 2px;
 }
 .weeks--x-label {
   color: #000080;

@@ -9,6 +9,8 @@
     unitText = document.querySelector('.unitbox-label').textContent.toLowerCase(),
     items = document.querySelectorAll('.chart li'),
     itemCount,
+    columnInput = document.getElementById('columns');
+    chartGrid = document.querySelector('.chart');
     COLOR = 'red',
     KEY = {
       UP: 38,
@@ -160,5 +162,33 @@
       dayEl.value = DOB.day
     }
     _handleDateChange();
+  }
+
+  function updateGridColumns() {
+    if (!columnInput || !chartGrid) return; 
+    
+    const colCount = parseInt(columnInput.value, 10);
+    chartGrid.style.gridTemplateColumns = `repeat(${colCount}, 1fr)`; 
+
+    // Find the axes containers
+    const xAxis = document.querySelector('.x-axis');
+    const yAxis = document.querySelector('.y-axis');
+
+    if (xAxis && yAxis) {
+      // Only show the labels if the grid is set to the default 52 weeks
+      if (colCount === 52) {
+        xAxis.style.display = 'block';
+        yAxis.style.display = 'block';
+      } else {
+        // Hide them entirely to prevent overlapping/inaccurate labels
+        xAxis.style.display = 'none';
+        yAxis.style.display = 'none';
+      }
+    }
+  }
+
+  if (columnInput) {
+    columnInput.addEventListener('input', updateGridColumns);
+    updateGridColumns();
   }
 })();
