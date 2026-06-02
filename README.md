@@ -9,3 +9,4 @@ A visualization of your life, as divided into years, months, and weeks.
 
 ## Credit
 Based on the [Your life in Weeks](http://waitbutwhy.com/2014/05/life-weeks.html) post by Tim Urban, from [Wait But Why](http://waitbutwhy.com/).
+Forked from [Bryan Braun](https://github.com/bryanbraun/your-life)
