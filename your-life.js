@@ -170,25 +170,37 @@
     const colCount = parseInt(columnInput.value, 10);
     chartGrid.style.gridTemplateColumns = `repeat(${colCount}, 1fr)`; 
 
-    // Find the axes containers
+    // --- NEW: Scale grid to fit entirely within the viewport ---
+    const totalItems = chartGrid.querySelectorAll('li').length;
+    const rowCount = Math.ceil(totalItems / colCount);
+    const availableHeight = window.innerHeight * 0.70; 
+    const gapSize = parseFloat(window.getComputedStyle(chartGrid).gap) || 2;
+    const cellSize = (availableHeight - ((rowCount - 1) * gapSize)) / rowCount;
+
+    if (cellSize > 0) {
+      const optimalWidth = (colCount * cellSize) + ((colCount - 1) * gapSize);
+      chartGrid.style.maxWidth = `min(100%, ${optimalWidth}px)`;
+    }
+
+    // --- AXIS TOGGLE ---
     const xAxis = document.querySelector('.x-axis');
     const yAxis = document.querySelector('.y-axis');
 
     if (xAxis && yAxis) {
-      // Only show the labels if the grid is set to the default 52 weeks
       if (colCount === 52) {
         xAxis.style.display = 'block';
         yAxis.style.display = 'block';
       } else {
-        // Hide them entirely to prevent overlapping/inaccurate labels
         xAxis.style.display = 'none';
         yAxis.style.display = 'none';
       }
     }
   }
 
+  // Bind the resize event so the chart recalculates if the window is resized
   if (columnInput) {
     columnInput.addEventListener('input', updateGridColumns);
+    window.addEventListener('resize', updateGridColumns);
     updateGridColumns();
   }
 })();
