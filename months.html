@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="months-favicon.png" sizes="32x32">
   <link rel="stylesheet" href="your-life.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.min.css">
 </head>
 <body>
   <div class="title-box">
@@ -17,30 +18,10 @@
       <option value="weeks">Weeks</option>
     </select>
   </div>
+  <br>
   <form class="dob" action="#">
-    <p class="instruction"><span class="print-hide">Enter your </span>Date of Birth</p>
-    <label for="month" class="visuallyhidden">Month</label>
-    <select name="month" class="month" id="month" required>
-      <option value="0">January</option>
-      <option value="1">February</option>
-      <option value="2">March</option>
-      <option value="3">April</option>
-      <option value="4">May</option>
-      <option value="5">June</option>
-      <option value="6">July</option>
-      <option value="7">August</option>
-      <option value="8">September</option>
-      <option value="9">October</option>
-      <option value="10">November</option>
-      <option value="11">December</option>
-    </select>
-    <label for="day" class="visuallyhidden">Day</label>
-    <input type="text" class="day" id="day" placeholder="31" pattern="\d{0,2}" required/>
-    <label for="year" class="visuallyhidden">Year</label>
-    <input type="text" class="year" id="year" placeholder="1999" pattern="\d{4}" required/>
-    <br><br>
-    <label for="columns">Months per row:</label>
-    <input type="number" id="columns" value="36" min="1" max="1080" />
+    <label for="dob">Date of Birth:</label>
+    <input type="text" name="dob" id="dob" required autocomplete="off" placeholder="YYYY-MM-DD">
   </form>
   <ol class="chart months group">
     <li></li>
@@ -1124,11 +1105,18 @@
     <li></li>
     <li></li>
   </ol>
+  <span class="print-hide">
+  <br><br>
+  <label for="columns">Months per row:</label>
+  <input type="number" id="columns" value="36" min="1" max="1080" />
+  </span>
   <div class="credits">
     <p>Based on the <a href="http://waitbutwhy.com/2014/05/life-weeks.html">Your Life in Weeks</a> post by Tim Urban, from <a href="http://waitbutwhy.com/">Wait But Why</a>.</p>
     <p class="print-hide"><a href="https://github.com/bryanbraun/your-life">See the code on Github.</a></p>
     <p class="print-hide"><a href="javascript:window.print()">Print this page.</a></p>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
   <script src="your-life.js"></script>
+</body>
 </body>
 </html>

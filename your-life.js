@@ -2,34 +2,35 @@
  * Interactive form and chart events / logic.
  */
 (function () {
-  var yearEl = document.getElementById('year'),
-    monthEl = document.getElementById('month'),
-    dayEl = document.getElementById('day'),
+  var dobEl = document.getElementById('dob'),
     unitboxEl = document.getElementById('unitbox'),
     unitText = document.querySelector('.unitbox-label').textContent.toLowerCase(),
     items = document.querySelectorAll('.chart li'),
     itemCount,
-    columnInput = document.getElementById('columns');
-    chartGrid = document.querySelector('.chart');
-    COLOR = 'red',
-    KEY = {
-      UP: 38,
-      DOWN: 40
-    };
+    columnInput = document.getElementById('columns'),
+    chartGrid = document.querySelector('.chart'),
+    COLOR = 'red';
+
+  var picker = new Pikaday({
+    field: dobEl,
+    yearRange: [1900, new Date().getFullYear()], // Sets the range for the Year dropdown
+    toString: function(date, format) {
+      // This forces the calendar to output "YYYY-MM-DD" without needing external libraries
+      var day = String(date.getDate()).padStart(2, '0');
+      var month = String(date.getMonth() + 1).padStart(2, '0');
+      var year = date.getFullYear();
+      return year + '-' + month + '-' + day;
+    },
+    onSelect: function() {
+      // When a user clicks a date, instantly run your update function
+      _handleDateChange(); 
+    }
+  });
 
   // Set listeners
   unitboxEl.addEventListener('change', _handleUnitChange);
-  yearEl.addEventListener('input', _handleDateChange);
-  yearEl.addEventListener('keydown', _handleUpdown);
-  yearEl.addEventListener('blur', _unhideValidationStyles);
-  monthEl.addEventListener('change', _handleDateChange);
-  monthEl.addEventListener('keydown', _handleUpdown);
-  dayEl.addEventListener('input', _handleDateChange);
-  dayEl.addEventListener('blur', _unhideValidationStyles);
-  dayEl.addEventListener('keydown', _handleUpdown);
-
-  // Ensure the month is unselected by default.
-  monthEl.selectedIndex = -1;
+  dobEl.addEventListener('input', _handleDateChange);
+  dobEl.addEventListener('blur', _unhideValidationStyles);
 
   // Load default values
   _loadStoredValueOfDOB();
@@ -39,47 +40,28 @@
     window.location = '' + e.currentTarget.value + '.html';
   }
 
-  function _handleDateChange(e) {
-
+  function _handleDateChange() {
     // Save date of birth in local storage
     localStorage.setItem("DOB", JSON.stringify({
-      month: monthEl.value,
-      year: yearEl.value,
-      day: dayEl.value
+      dob: dobEl.value
     }));
 
     if (_dateIsValid()) {
-      itemCount = calculateElapsedTime();
+      dobEl.classList.add('touched');
+      itemCount = _calculateElapsedTime();
       _repaintItems(itemCount);
     } else {
       _repaintItems(0);
     }
   }
 
-  function _handleUpdown(e) {
-    var newNum;
-    // A crossbrowser keycode option.
-    thisKey = e.keyCode || e.which;
-    if (e.target.checkValidity()) {
-      if (thisKey === KEY.UP) {
-        newNum = parseInt(e.target.value, 10);
-        e.target.value = newNum += 1;
-        // we call the date change function manually because the input event isn't
-        // triggered by arrow keys, or by manually setting the value, as we've done.
-        _handleDateChange();
-      } else if (thisKey === KEY.DOWN) {
-        newNum = parseInt(e.target.value, 10);
-        e.target.value = newNum -= 1;
-        _handleDateChange();
-      }
+  function _unhideValidationStyles() {
+    if (dobEl) {
+      dobEl.classList.add('touched');
     }
   }
 
-  function _unhideValidationStyles(e) {
-    e.target.classList.add('touched');
-  }
-
-  function calculateElapsedTime() {
+  function _calculateElapsedTime() {
     var currentDate = new Date(),
       dateOfBirth = _getDateOfBirth(),
       diff = currentDate.getTime() - dateOfBirth.getTime(),
@@ -87,37 +69,23 @@
 
     switch (unitText) {
       case 'weeks':
-        // Measuring weeks is tricky since our chart shows 52 weeks per year (for simplicity)
-        // when the actual number of weeks per year is 52.143. Attempting to calculate weeks
-        // with a diffing strategy will result in build-up over time. Instead, we'll add up
-        // 52 per elapsed full year, and only diff the weeks on the current partial year.
         var elapsedYears = (new Date(diff).getUTCFullYear() - 1970);
-        var isThisYearsBirthdayPassed = (currentDate.getTime() > new Date(currentDate.getUTCFullYear(), monthEl.value, dayEl.value).getTime());
+        
+        // Extract month and day from the new dateOfBirth object
+        var dobMonth = dateOfBirth.getMonth();
+        var dobDate = dateOfBirth.getDate();
+
+        var isThisYearsBirthdayPassed = (currentDate.getTime() > new Date(currentDate.getFullYear(), dobMonth, dobDate).getTime());
         var birthdayYearOffset = isThisYearsBirthdayPassed ? 0 : 1;
-        var dateOfLastBirthday = new Date(currentDate.getUTCFullYear() - birthdayYearOffset, monthEl.value, dayEl.value);
+        var dateOfLastBirthday = new Date(currentDate.getFullYear() - birthdayYearOffset, dobMonth, dobDate);
         var elapsedDaysSinceLastBirthday = Math.floor((currentDate.getTime() - dateOfLastBirthday.getTime()) / (1000 * 60 * 60 * 24));
         var elapsedWeeks = (elapsedYears * 52) + Math.floor(elapsedDaysSinceLastBirthday / 7);
         elapsedTime = elapsedWeeks;
         break;
       case 'months':
-        // Months are tricky, being variable length, so I opted for the average number
-        // of days in a month as a close-enough approximation (30.4375). This can make
-        // the chart look off by a day when you're right on the month threshold, but
-        // it's otherwise fairly accurate over long periods of time.
         elapsedTime = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.4375));
         break;
       case 'years':
-        // We can represent our millisecond diff as a year and subtract 1970 to
-        // end up with an accurate elapsed time. To see why, consider the following:
-        //
-        //   1. JavaScript's Date timestamp represents milliseconds since 1970. Thus,
-        //      new Date(0).toUTCString() → 'Thu, 01 Jan 1970 00:00:00 GMT'
-        //   2. Picture the diff between today and tomorrow. It's a small number. A
-        //      newly created date with that number would result in January 2 1970.
-        //   3. Thus, subtracting 1970 from that date gives us elapsed time. We use
-        //      UTC because otherwise we'd need to offset "1970" by our timezone.
-        //
-        // See more details here: https://stackoverflow.com/a/24181701/1154642
         elapsedTime = (new Date(diff).getUTCFullYear() - 1970);
         break;
     }
@@ -126,11 +94,12 @@
   }
 
   function _dateIsValid() {
-    return monthEl.checkValidity() && dayEl.checkValidity() && yearEl.checkValidity();
+    return dobEl.checkValidity() && dobEl.value !== '';
   }
 
   function _getDateOfBirth() {
-    return new Date(yearEl.value, monthEl.value, dayEl.value);
+    var parts = dobEl.value.split('-');
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   }
 
   function _repaintItems(number) {
@@ -146,22 +115,28 @@
   function _loadStoredValueOfDOB() {
     var DOB = JSON.parse(localStorage.getItem('DOB'));
 
-    if (!DOB) {
-      return;
+    if (!DOB) return;
+
+    if (DOB.dob) {
+      dobEl.value = DOB.dob;
+      // Tell Pikaday to update its internal calendar to match this date
+      var parts = DOB.dob.split('-');
+      // The "true" prevents an infinite loop on load
+      picker.setDate(new Date(parts[0], parts[1] - 1, parts[2]), true); 
+    } 
+    else if (DOB.year && DOB.month !== undefined && DOB.day) {
+      // Legacy fallback
+      var mm = String(parseInt(DOB.month) + 1).padStart(2, '0');
+      var dd = String(DOB.day).padStart(2, '0');
+      dobEl.value = DOB.year + '-' + mm + '-' + dd;
+      picker.setDate(new Date(DOB.year, DOB.month, DOB.day), true);
     }
 
-    if (DOB.month >= 0 && DOB.month < 12) {
-      monthEl.value = DOB.month
+    if (_dateIsValid()) {
+      _unhideValidationStyles();
+      itemCount = _calculateElapsedTime();
+      _repaintItems(itemCount);
     }
-
-    if (DOB.year) {
-      yearEl.value = DOB.year
-    }
-
-    if (DOB.day > 0 && DOB.day < 32) {
-      dayEl.value = DOB.day
-    }
-    _handleDateChange();
   }
 
   function updateGridColumns() {
